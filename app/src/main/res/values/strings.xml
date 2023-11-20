@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Warframe "Companion App"</string>
+    <string name="pet_type">Choose a pet type</string>
+    <string-array name="pet_arrays">
+        <item>Sentinel</item>
+        <item>Kavat</item>
+        <item>Kubrow</item>
+        <item>Vulpaphyla</item>
+        <item>Predasite</item>
+        <item>MOA</item>
+        <item>Hound</item>
+    </string-array>
+</resources>
