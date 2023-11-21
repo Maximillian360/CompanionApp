@@ -32,6 +32,13 @@
                 android:text="Search Pet"/>
         </LinearLayout>
 
+        <TextView
+            android:id="@+id/tvNoPets"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="No Pets Currently"
+            android:visibility="invisible" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_pets"
             android:layout_width="match_parent"

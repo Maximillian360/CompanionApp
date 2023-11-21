@@ -22,7 +22,6 @@ class AddPetDialog : DialogFragment() {
 
     private lateinit var binding: DialogAddPetBinding
     lateinit var refreshDataCallback: RefreshDataInterface
-    //
     private var database = RealmDatabase()
 
 
@@ -51,11 +50,6 @@ class AddPetDialog : DialogFragment() {
                 R.array.pet_arrays,
                 android.R.layout.simple_spinner_item
             )
-            cbHasOwner.setOnCheckedChangeListener{ _, isChecked ->
-                if(isChecked){
-                    edtOwner.isEnabled = true
-                }
-            }
             btnAdd.setOnClickListener{
                 if(edtPetName.text.isNullOrEmpty()){
                     edtPetName.error = "Required"
@@ -65,13 +59,10 @@ class AddPetDialog : DialogFragment() {
                     edtAge.error = "Required"
                     return@setOnClickListener
                 }
-                if(cbHasOwner.isChecked && edtOwner.text.isNullOrEmpty()){
-                    edtOwner.error = "Required"
-                    return@setOnClickListener
-                }
+
                 val selectedPetType = spType.selectedItem.toString()
                 val petAge = edtAge.text.toString().toInt()
-                val ownerName = if(cbHasOwner.isChecked) edtOwner.text.toString() else "Lotus"
+                val ownerName = if (edtOwner.text.isNotEmpty()) edtOwner.text.toString() else "Lotus"
 
                 //TODO: DISCUSSION FOR REALM HERE
 

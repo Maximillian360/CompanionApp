@@ -55,6 +55,12 @@
                 android:layout_height="wrap_content"
                 android:text="Adopt" />
 
+            <Button
+                android:id="@+id/btnEditPet"
+                android:layout_width="132dp"
+                android:layout_height="wrap_content"
+                android:text="Edit" />
+
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>

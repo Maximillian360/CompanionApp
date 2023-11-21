@@ -70,13 +70,6 @@ class OwnersActivity : AppCompatActivity(), PetAdapter.PetAdapterInterface, Owne
     }
 
 
-
-    private fun showDeleteConfirmationDialog(itemId: String, position: Int, isPet: Boolean) {
-        //val itemName = if (isPet) "Pet" else "Owner"
-
-
-    }
-
     override fun deletePet(id: String, position: Int) {
         // Implement deletion logic in OwnersActivity or wherever necessary
     }
@@ -92,7 +85,7 @@ class OwnersActivity : AppCompatActivity(), PetAdapter.PetAdapterInterface, Owne
         setContentView(binding.root)
 
         ownerList = arrayListOf()
-        adapter = OwnerAdapter(ownerList,this, this)
+        adapter = OwnerAdapter(ownerList,this, this, supportFragmentManager)
         binding.rvOwner.adapter = adapter
 
         itemTouchHelper = ItemTouchHelper(swipeToDeleteCallback)

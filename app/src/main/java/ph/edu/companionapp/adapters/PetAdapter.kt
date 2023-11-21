@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import ph.edu.companionapp.R
 import ph.edu.companionapp.databinding.ContentPetRvBinding
 import ph.edu.companionapp.dialogs.AdoptPetDialog
+import ph.edu.companionapp.dialogs.EditPet
 import ph.edu.companionapp.models.Pet
 
 class PetAdapter(
@@ -67,22 +68,30 @@ class PetAdapter(
                 btnAdopt.isEnabled = itemData.ownerName == "Lotus"
 
                 btnAdopt.setOnClickListener {
-                    if (itemData != null) {
-                        val adoptPetDialog = AdoptPetDialog()
-                        adoptPetDialog.refreshDataCallback = object : AdoptPetDialog.RefreshDataInterface {
-                            override fun refreshData() {
-                                // Implement the logic to refresh the data
-                                // This might involve updating the RecyclerView, for example
-                                petAdapterCallback.refreshData()
-                            }
+                    val adoptPetDialog = AdoptPetDialog()
+                    adoptPetDialog.refreshDataCallback = object : AdoptPetDialog.RefreshDataInterface {
+                        override fun refreshData() {
+                            // Implement the logic to refresh the data
+                            // This might involve updating the RecyclerView, for example
+                            petAdapterCallback.refreshData()
                         }
-                        adoptPetDialog.setPet(itemData)
-                        adoptPetDialog.show(fragmentManager, null)
-
-                    } else {
-                        // Handle the case where itemData is null
-                        Log.e("AdoptPetDialog", "itemData is null")
                     }
+                    adoptPetDialog.setPet(itemData)
+                    adoptPetDialog.show(fragmentManager, null)
+
+                }
+
+                btnEditPet.setOnClickListener {
+                    val editPet = EditPet()
+                    editPet.refreshDataCallback = object : EditPet.RefreshDataInterface{
+                        override fun refreshData() {
+                            petAdapterCallback.refreshData()
+                        }
+
+                    }
+                    editPet.bindPetData(itemData)
+                    editPet.show(fragmentManager, null)
+                    Log.d("PetAdapter", "Opening EditPet dialog for pet: $itemData")
                 }
             }
         }

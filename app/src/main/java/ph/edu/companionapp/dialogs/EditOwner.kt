@@ -1,6 +1,5 @@
 package ph.edu.companionapp.dialogs
 
-
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -9,24 +8,26 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import ph.edu.companionapp.databinding.DialogAdoptPetBinding
+import org.mongodb.kbson.BsonObjectId
+import ph.edu.companionapp.databinding.EditOwnerBinding
+import ph.edu.companionapp.models.Owner
 import ph.edu.companionapp.models.Pet
 import ph.edu.companionapp.realm.RealmDatabase
 
-class AdoptPetDialog : DialogFragment() {
-
-    private lateinit var binding: DialogAdoptPetBinding
-    lateinit var refreshDataCallback: RefreshDataInterface
-    private lateinit var pet: Pet
+class EditOwner: DialogFragment() {
+    private lateinit var binding: EditOwnerBinding
+    lateinit var refreshDataCallback: EditPet.RefreshDataInterface
     private var database = RealmDatabase()
+    private lateinit var owner: Owner
 
-    interface RefreshDataInterface {
+    interface RefreshDataInterface{
         fun refreshData()
     }
 
@@ -38,9 +39,10 @@ class AdoptPetDialog : DialogFragment() {
         )
     }
 
-    fun setPet(pet: Pet) {
-        Log.d("AdoptPetDialog", "Setting pet: $pet")
-        this.pet = pet
+    fun bindOwnerData(owner: Owner) {
+        Log.d("EditPet", "Updating pet: $owner")
+        this.owner = owner
+
     }
 
     override fun onCreateView(
@@ -48,47 +50,43 @@ class AdoptPetDialog : DialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = DialogAdoptPetBinding.inflate(inflater, container, false)
+        binding = EditOwnerBinding.inflate(layoutInflater, container, false)
         return binding.root
-    }
 
+    }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        with(binding) {
-
-            btnAdopt.setOnClickListener {
-                if (edtOwner.text.isNullOrEmpty()) {
-                    edtOwner.error = "Required"
+        with(binding){
+            edtOwnerUpd.setText(owner.name)
+            btnEditOwner.setOnClickListener {
+                if(edtOwnerUpd.text.isNullOrEmpty()) {
+                    edtOwnerUpd.error = "Required"
                     return@setOnClickListener
                 }
-
-                val ownerName = if (edtOwner.text.isNotEmpty()) edtOwner.text.toString() else "Lotus"
+                val name = edtOwnerUpd.text.toString()
+                val id = owner.id
                 val coroutineContext = Job() + Dispatchers.IO
-                val scope = CoroutineScope(coroutineContext + CoroutineName("adoptPet"))
+                val scope = CoroutineScope(coroutineContext + CoroutineName("editOwnerToRealm"))
+                Log.d("EditOwner", "Updating pet: id=$id, name=$name")
                 scope.launch(Dispatchers.IO) {
                     try {
-                        // Call the adoptPet function from your RealmDatabase
-                        database.adoptPet(pet, ownerName)
+                        database.updateOwner(BsonObjectId(id), name)
                         withContext(Dispatchers.Main) {
-                            // You can update the UI or show a message if needed
-                            Toast.makeText(activity, "Pet adopted!", Toast.LENGTH_LONG).show()
-                            // Refresh data if necessary
+                            Toast.makeText(activity, "Owner has been updated!", Toast.LENGTH_LONG).show()
                             refreshDataCallback.refreshData()
                             dialog?.dismiss()
                         }
                     }
-                    catch (e: Exception) {
-                        // Log the exception for debugging
-                        Log.e("AdoptPet", "Error adopting Pet", e)
-                        // Handle adoption error
+                    catch(e: Exception){
+                        Log.e("EditOwner", "Error updating OWNER", e)
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(activity, "Error ADOPTING pet", Toast.LENGTH_LONG).show()
-
+                            Snackbar.make(binding.root, "Error updating owner", Snackbar.LENGTH_SHORT).show()
                         }
                     }
                 }
             }
         }
+
     }
+
 }

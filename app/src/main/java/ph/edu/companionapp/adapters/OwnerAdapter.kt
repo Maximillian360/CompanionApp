@@ -4,23 +4,28 @@ package ph.edu.companionapp.adapters
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ph.edu.companionapp.adapters.ItemTouchHelperAdapter
 import ph.edu.companionapp.models.Owner
 import ph.edu.companionapp.adapters.OwnedPetAdapter
 import ph.edu.companionapp.databinding.ContentOwnerRvBinding
+import ph.edu.companionapp.dialogs.EditOwner
+import ph.edu.companionapp.dialogs.EditPet
 
 class OwnerAdapter(
     private var ownerList: ArrayList<Owner>,
     private val context: Context,
-    private val ownerAdapterCallback: OwnerAdapterInterface
+    private val ownerAdapterCallback: OwnerAdapterInterface,
+    private var fragmentManager: FragmentManager
 ) : RecyclerView.Adapter<OwnerAdapter.OwnerViewHolder>(),
     ItemTouchHelperAdapter {
 
 
     interface OwnerAdapterInterface {
         fun deleteOwnerAndTransferPets(ownerId: String, position: Int)
+        fun refreshData()
     }
 
     inner class OwnerViewHolder(private val binding: ContentOwnerRvBinding): RecyclerView.ViewHolder(binding.root){
@@ -33,6 +38,20 @@ class OwnerAdapter(
                 val ownedPetAdapter = OwnedPetAdapter(itemData.ownedPets)
                 rvOwnedPets.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
                 rvOwnedPets.adapter = ownedPetAdapter
+
+                btnEditOwner.isEnabled = itemData.name != "Lotus"
+
+                btnEditOwner.setOnClickListener {
+                    val editOwnerDialog = EditOwner()
+                    editOwnerDialog.refreshDataCallback = object : EditPet.RefreshDataInterface{
+                        override fun refreshData() {
+                            ownerAdapterCallback.refreshData()
+                        }
+                    }
+                    editOwnerDialog.bindOwnerData(itemData)
+                    editOwnerDialog.show(fragmentManager, null)
+
+                }
             }
         }
     }

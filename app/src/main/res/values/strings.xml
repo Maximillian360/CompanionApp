@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Warframe "Companion App"</string>
+    <string name="app_name">Companion App"</string>
     <string name="pet_type">Choose a pet type</string>
     <string-array name="pet_arrays">
         <item>Sentinel</item>

@@ -31,13 +31,14 @@
         android:id="@+id/edt_owner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:enabled="true"
-        android:hint="Owner name" />
+        android:enabled="false"
+        android:hint="Owner name"
+        android:text="Transfer to Lotus" />
 
     <Button
-        android:id="@+id/btn_add"
+        android:id="@+id/btn_edit_pet"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Add pet" />
+        android:text="Update pet" />
 
 </LinearLayout>
