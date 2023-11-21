@@ -18,7 +18,9 @@
         android:layout_height="wrap_content"
         android:entries="@array/pet_arrays"
         android:prompt="@string/pet_type"
-        android:padding="10dp"/>
+        android:padding="10dp"
+        android:scrollbarSize="8dp"
+        android:textSize="15sp"/>
 
     <EditText
         android:id="@+id/edt_age"

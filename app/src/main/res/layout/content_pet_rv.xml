@@ -21,45 +21,67 @@
 
             <ImageView
                 android:id="@+id/imageView"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="75dp"
+                android:layout_height="75dp"
                 android:src="@drawable/sentinel" />
 
             <TextView
                 android:id="@+id/txt_pet_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Pet Name: "/>
+                android:text="Pet Name: "
+                android:textSize="20sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/txt_pet_type"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Pet type: "/>
+                android:text="Pet type: "
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/txt_age"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Age: "/>
+                android:text="Age: "
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/txt_owner_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/txt_owner_name"
-                android:text="Owner name: "/>
+                android:text="Owner name: "
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/btnAdopt"
-                android:layout_width="133dp"
-                android:layout_height="wrap_content"
-                android:text="Adopt" />
 
-            <Button
-                android:id="@+id/btnEditPet"
-                android:layout_width="132dp"
+            <LinearLayout
+                android:layout_marginTop="10dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Edit" />
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnAdopt"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginLeft="10dp"
+                    android:text="Adopt" />
+
+                <Button
+                    android:id="@+id/btnEditPet"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginRight="10dp"
+                    android:text="Edit" />
+            </LinearLayout>
 
         </LinearLayout>
 

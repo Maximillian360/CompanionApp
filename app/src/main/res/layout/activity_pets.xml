@@ -8,6 +8,7 @@
     tools:context=".activities.PetsActivity">
 
     <LinearLayout
+        android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
@@ -16,35 +17,40 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:weightSum="3"
-            android:padding="10dp">
+            android:padding="10dp"
+            android:weightSum="3">
+
             <EditText
                 android:id="@+id/edt_search"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
-                android:hint="Search Pets"/>
+                android:layout_marginTop="10dp"
+                android:layout_marginRight="10dp"
+                android:paddingTop="10dp"
+                android:hint="Search Pets" />
+
             <Button
                 android:id="@+id/btn_search"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Search Pet"/>
+                android:text="Search Pet" />
+
+
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/tvNoPets"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="No Pets Currently"
-            android:visibility="invisible" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_pets"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent"
+            android:visibility="visible" />
 
     </LinearLayout>
+
 
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -55,5 +61,6 @@
         android:src="@drawable/ic_add"
         android:contentDescription="addPet"
         android:layout_margin="16dp" />
+
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

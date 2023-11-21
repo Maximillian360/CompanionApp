@@ -3,6 +3,8 @@ package ph.edu.companionapp.activities
 import android.app.AlertDialog
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isInvisible
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -69,12 +71,12 @@ class PetsActivity : AppCompatActivity() , AddPetDialog.RefreshDataInterface, Pe
         itemTouchHelper.attachToRecyclerView(binding.rvPets)
 
 
-
         binding.fab.setOnClickListener{
             val addPetDialog = AddPetDialog()
             addPetDialog.refreshDataCallback = this
             addPetDialog.show(supportFragmentManager,null)
         }
+
 
         binding.btnSearch.setOnClickListener{
             if(binding.edtSearch.text.toString().isEmpty()){
@@ -92,9 +94,7 @@ class PetsActivity : AppCompatActivity() , AddPetDialog.RefreshDataInterface, Pe
                         mapPet(it)
                     }
                 )
-                withContext(Dispatchers.Main) {
-                    adapter.updatePetList(petList)
-                }
+
             }
         }
 
@@ -151,12 +151,12 @@ class PetsActivity : AppCompatActivity() , AddPetDialog.RefreshDataInterface, Pe
     }
 
     private fun getPets() {
+
         val coroutineContext = Job() + Dispatchers.IO
         val scope = CoroutineScope(coroutineContext + CoroutineName("LoadAllPets"))
         scope.launch(Dispatchers.IO) {
             val pets = database.getAllPets()
             val petList = arrayListOf<Pet>()
-
             petList.addAll(
                 pets.map {
                     mapPet(it)
@@ -167,4 +167,6 @@ class PetsActivity : AppCompatActivity() , AddPetDialog.RefreshDataInterface, Pe
             }
         }
     }
+
+
 }
