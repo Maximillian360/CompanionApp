@@ -19,6 +19,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
         binding.btnOwnerList.setOnClickListener(this)
         binding.btnPetList.setOnClickListener(this)
+        binding.btnArchived.setOnClickListener(this)
+        binding.btnConsigned.setOnClickListener(this)
 
     }
 
@@ -30,6 +32,14 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             }
             R.id.btn_pet_list -> {
                 val intent = Intent(this, PetsActivity::class.java)
+                startActivity(intent)
+            }
+            R.id.btn_archived -> {
+                val intent = Intent(this, ArchivedActivity::class.java)
+                startActivity(intent)
+            }
+            R.id.btn_consigned -> {
+                val intent = Intent(this, ConsignedActivity::class.java)
                 startActivity(intent)
             }
         }

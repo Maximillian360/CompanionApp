@@ -9,17 +9,17 @@ import android.view.ViewGroup
 import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.RecyclerView
 import ph.edu.companionapp.R
-import ph.edu.companionapp.databinding.ContentPetRvBinding
+import ph.edu.companionapp.databinding.ContentConsignedRvBinding
 import ph.edu.companionapp.dialogs.AdoptPetDialog
 import ph.edu.companionapp.dialogs.EditPet
 import ph.edu.companionapp.models.Pet
 
-class PetAdapter(
+class ConsignedAdapter(
     private var petList: ArrayList<Pet>,
     private var context: Context,
-    private var petAdapterCallback: PetAdapterInterface,
+    private var consignedAdapterCallback: ConsignedAdapterInterface,
     private var fragmentManager: FragmentManager
-) : RecyclerView.Adapter<PetAdapter.PetViewHolder>(),
+) : RecyclerView.Adapter<ConsignedAdapter.ConsignedViewHolder>(),
     ItemTouchHelperAdapter {
 
     val petTypeImages = mapOf(
@@ -32,14 +32,13 @@ class PetAdapter(
         "Hound" to R.drawable.hound
     )
 
-    interface PetAdapterInterface {
+    interface ConsignedAdapterInterface {
         fun deletePet(id: String, position: Int)
         fun refreshData()
-        fun consignPet(pet: Pet, position: Int)
 
     }
 
-    inner class PetViewHolder(private val binding: ContentPetRvBinding) :
+    inner class ConsignedViewHolder(private val binding: ContentConsignedRvBinding) :
         RecyclerView.ViewHolder(binding.root), ItemTouchHelperViewHolder {
         override fun onItemSelected() {
             // No additional action on item selection
@@ -74,7 +73,7 @@ class PetAdapter(
                         override fun refreshData() {
                             // Implement the logic to refresh the data
                             // This might involve updating the RecyclerView, for example
-                            petAdapterCallback.refreshData()
+                            consignedAdapterCallback.refreshData()
                         }
                     }
                     adoptPetDialog.setPet(itemData)
@@ -86,7 +85,7 @@ class PetAdapter(
                     val editPet = EditPet()
                     editPet.refreshDataCallback = object : EditPet.RefreshDataInterface{
                         override fun refreshData() {
-                            petAdapterCallback.refreshData()
+                            consignedAdapterCallback.refreshData()
                         }
 
                     }
@@ -98,12 +97,13 @@ class PetAdapter(
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PetViewHolder {
-        val binding = ContentPetRvBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return PetViewHolder(binding)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ConsignedViewHolder {
+        val binding =
+            ContentConsignedRvBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ConsignedViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: PetViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ConsignedViewHolder, position: Int) {
         val petData = petList[position]
         holder.bind(petData)
     }
@@ -115,8 +115,7 @@ class PetAdapter(
         // Remove the swiped pet from the list
         if (position in 0 until petList.size) {
             val petId = petList[position].id
-            petAdapterCallback.consignPet(petList[position], position)
-            //petAdapterCallback.deletePet(petId, position)
+            consignedAdapterCallback.deletePet(petId, position)
             petList.removeAt(position)
             notifyItemRemoved(position)
         }

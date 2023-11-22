@@ -4,18 +4,16 @@ import android.util.Log
 import io.realm.kotlin.Realm
 import io.realm.kotlin.RealmConfiguration
 import io.realm.kotlin.ext.query
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.withContext
 import org.mongodb.kbson.BsonObjectId
 import org.mongodb.kbson.ObjectId
+import ph.edu.companionapp.models.Owner
 import ph.edu.companionapp.models.Pet
 import ph.edu.companionapp.realm.realmmodels.OwnerRealm
 import ph.edu.companionapp.realm.realmmodels.PetRealm
 import ph.edu.companionapp.realm.realmmodels.PetTypeRealm
 import java.lang.IllegalStateException
-import java.nio.file.Files.delete
 
 class RealmDatabase {
     private val realm: Realm by lazy {
@@ -70,6 +68,24 @@ class RealmDatabase {
         return realm.query<PetRealm>().asFlow().map { it.list }
     }
 
+    fun getOwnedPets(): List<PetRealm> {
+        val lotusOwner: OwnerRealm? = realm.query<OwnerRealm>("name == $0", "Lotus").first().find()
+        return realm.query<PetRealm>("owner != $0", lotusOwner).find()
+    }
+
+    fun getConsignedPets(): List<PetRealm> {
+        val lotusOwner: OwnerRealm? = realm.query<OwnerRealm>("name == $0", "Lotus").first().find()
+        return realm.query<PetRealm>("owner == $0", lotusOwner).find()
+    }
+
+    fun getAllOwners(): List<OwnerRealm> {
+        return realm.query<OwnerRealm>("isDeleted == false").find()
+    }
+
+    fun getArchivedOwners(): List<OwnerRealm> {
+        return realm.query<OwnerRealm>("isDeleted == true").find()
+    }
+
     // Search Query
     fun getPetsByName(name: String): List<PetRealm> {
         return realm.query<PetRealm>("name CONTAINS $0", name).find()
@@ -87,14 +103,14 @@ class RealmDatabase {
 
             if (ownerName.isNotEmpty() && ownerName != "Lotus") {
                 // Check if there's an owner
-                val ownerResult: OwnerRealm? =
-                    realm.query<OwnerRealm>("name == $0", ownerName).first().find()
+                val ownerResult: OwnerRealm? = realm.query<OwnerRealm>("name == $0", ownerName).first().find()
 
                 if (ownerResult == null) {
                     // If there's no owner
                     val owner = OwnerRealm().apply {
                         this.name = ownerName
                         this.pets.add(managePet)
+                        this.isDeleted = false
                     }
 
                     val manageOwner = copyToRealm(owner)
@@ -105,8 +121,7 @@ class RealmDatabase {
                     findLatest(managePet)?.owner = findLatest(ownerResult)
                 }
             } else {
-                val lotusOwner: OwnerRealm? =
-                    realm.query<OwnerRealm>("name == $0", "Lotus").first().find()
+                val lotusOwner: OwnerRealm? = realm.query<OwnerRealm>("name == $0", "Lotus").first().find()
 
                 if (lotusOwner == null) {
                     // If there's no owner
@@ -141,6 +156,7 @@ class RealmDatabase {
                     // If there's no owner with the specified name
                     val newOwner = OwnerRealm().apply {
                         this.name = ownerName
+                        this.isDeleted = false
                         this.pets.add(petRealm!!)
                     }
                     val managedNewOwner = copyToRealm(newOwner)
@@ -216,6 +232,83 @@ class RealmDatabase {
         }
     }
 
+    suspend fun consignPet(pet: Pet){
+        val petId = BsonObjectId(pet.id)
+        realm.write {
+            val petConsign = query<PetRealm>("id == $0", petId).first().find()
+            val lotusOwner: OwnerRealm? = query<OwnerRealm>("name == $0", "Lotus").first().find()
+            val previousOwnerId = petConsign!!.owner?.id
+            val previousOwner: OwnerRealm? = query<OwnerRealm>("id == $0", previousOwnerId).first().find()
+            Log.d("RealmConsign", "Trying to consign ${pet.name} with ${pet.id}")
+            try{
+                if(petConsign != null && previousOwner != null){
+                    Log.d("RealmConsignBefore", "Pet owner before consign: ${petConsign.owner?.name}")
+
+                    findLatest(petConsign).apply{
+                        petConsign.owner = lotusOwner
+                    }
+                    lotusOwner?.pets?.add(petConsign)
+                    previousOwner.pets.remove(petConsign)
+
+
+                    Log.d("RealmConsignAfter", "Pet owner after consign: ${petConsign.owner?.name}")
+                    Log.d("RealmConsignSuccessful", "${pet.name} consigned successfully")
+                }
+                else{
+                    throw IllegalStateException("Pet not found")
+                }
+            }
+
+            catch(e : Exception){
+                e.printStackTrace()
+                Log.e("RealmConsignFailed", "${e.message}")
+                throw IllegalStateException("Cannot consign.")
+            }
+        }
+    }
+
+    suspend fun archiveOwner(owner: Owner){
+        val archiveID = BsonObjectId(owner.id)
+        realm.write {
+            val ownerArchive = query<OwnerRealm>("id == $0", archiveID).first().find()
+            Log.d("RealmArchiveOwner", "Trying to archive ${owner.name} ID: ${owner.id}")
+            try{
+                if(ownerArchive != null){
+                    findLatest(ownerArchive).apply {
+                        ownerArchive.isDeleted = true
+                    }
+                }
+                Log.d("RealmArchiveOwner", "Successfully archived ${owner.name} ID: ${owner.id}")
+            }
+            catch (e: Exception){
+                Log.e("RealmArchiveFailOwner", "Failed to archive ${owner.name} ID: ${owner.id}", e)
+                throw IllegalStateException("Owner with ID $archiveID not found. Cannot archive.")
+            }
+        }
+    }
+
+    suspend fun restoreOwner(owner: Owner){
+        val restoreId = BsonObjectId(owner.id)
+        realm.write {
+            val ownerRestore = query<OwnerRealm>("id == $0", restoreId).first().find()
+            Log.d("RealmRestoreOwner", "Trying to restore ${owner.name} ID: ${owner.id}")
+            try{
+                if(ownerRestore != null){
+                    findLatest(ownerRestore).apply {
+                        ownerRestore.isDeleted = false
+                    }
+                }
+
+            }
+            catch(e: Exception){
+                Log.e("RealmRestoreOwnerFail", "Error Restoring Owner", e)
+                throw IllegalStateException("Owner with ID $restoreId not found. Cannot archive.")
+            }
+        }
+    }
+
+
+
 
     suspend fun deleteOwnerAndTransferPets(ownerId: ObjectId) {
         realm.write {
@@ -227,8 +320,7 @@ class RealmDatabase {
                 }
 
                 // Transfer pets to Lotus
-                val lotusOwner: OwnerRealm? =
-                    query<OwnerRealm>("name == $0", "Lotus").first().find()
+                val lotusOwner: OwnerRealm? = query<OwnerRealm>("name == $0", "Lotus").first().find()
                 ownerRealm?.pets?.forEach { petRealm ->
                     lotusOwner?.pets?.add(petRealm)
                     petRealm.owner = lotusOwner
@@ -237,15 +329,12 @@ class RealmDatabase {
                 // Delete the owner
                 ownerRealm?.let { delete(it) }
             } catch (e: Exception) {
-                // Log the exception for debugging
+
                 Log.e("DeleteOwner", "Error deleting Owner", e)
-                // Handle exception if there's an issue with the deletion
                 throw IllegalStateException("Error Deleting Owner", e)
             }
         }
     }
 
-    fun getAllOwners(): List<OwnerRealm> {
-        return realm.query<OwnerRealm>().find()
-    }
+
 }

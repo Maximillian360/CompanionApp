@@ -2,11 +2,17 @@ package ph.edu.companionapp.adapters
 
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import ph.edu.companionapp.adapters.ItemTouchHelperAdapter
 import ph.edu.companionapp.models.Owner
 import ph.edu.companionapp.adapters.OwnedPetAdapter
@@ -24,6 +30,8 @@ class OwnerAdapter(
 
 
     interface OwnerAdapterInterface {
+
+        fun archiveOwner(ownerId: String, position: Int)
         fun deleteOwnerAndTransferPets(ownerId: String, position: Int)
         fun refreshData()
     }
@@ -50,7 +58,6 @@ class OwnerAdapter(
                     }
                     editOwnerDialog.bindOwnerData(itemData)
                     editOwnerDialog.show(fragmentManager, null)
-
                 }
             }
         }
@@ -72,17 +79,35 @@ class OwnerAdapter(
     }
 
     override fun onItemDismiss(position: Int) {
-        val ownerId = ownerList[position].id
-        ownerAdapterCallback.deleteOwnerAndTransferPets(ownerId, position)
-        ownerList.removeAt(position)
-        notifyItemRemoved(position)
+        if (position in 0 until ownerList.size) {
+            val ownerId = ownerList[position].id
+            Log.d("OwnerAdapter", "onItemDismiss - ownerListSize: ${ownerList.size}")
+            Log.d("OwnerAdapter", "onItemDismiss - ownerId: $ownerId, position: $position")
+            ownerAdapterCallback.archiveOwner(ownerId, position)
+        }
+        else{
+            Log.d("OwnerAdapter", "Error: Position out of bounds")
+        }
+
+
+//        ownerList.removeAt(position)
+//        notifyItemRemoved(position)
+
+
+        //ownerAdapterCallback.deleteOwnerAndTransferPets(ownerId, position)
     }
 
-    fun updateList(ownerList: ArrayList<Owner>){
-        this.ownerList = arrayListOf()
+//    fun updateList(ownerList: ArrayList<Owner>){
+//        this.ownerList = arrayListOf()
+//        notifyDataSetChanged()
+//        this.ownerList = ownerList
+//        this.notifyItemInserted(this.ownerList.size)
+//    }
+
+    fun updateList(ownerList: ArrayList<Owner>) {
+        this.ownerList.clear()
+        this.ownerList.addAll(ownerList)
         notifyDataSetChanged()
-        this.ownerList = ownerList
-        this.notifyItemInserted(this.ownerList.size)
     }
 
     fun getOwnerId(position: Int): String? {
@@ -91,5 +116,4 @@ class OwnerAdapter(
         }
         return null
     }
-
 }

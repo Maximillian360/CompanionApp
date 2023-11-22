@@ -34,6 +34,18 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Owner list" />
+
+        <Button
+            android:id="@+id/btn_archived"
+            android:layout_width="169dp"
+            android:layout_height="wrap_content"
+            android:text="Archived Owners" />
+
+        <Button
+            android:id="@+id/btn_consigned"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Lotus' Pets" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

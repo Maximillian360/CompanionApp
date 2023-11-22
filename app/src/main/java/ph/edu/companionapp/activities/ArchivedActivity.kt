@@ -1,15 +1,10 @@
 package ph.edu.companionapp.activities
 
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -21,28 +16,28 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.mongodb.kbson.BsonObjectId
+import ph.edu.companionapp.adapters.ArchivedAdapter
 import ph.edu.companionapp.models.Pet
 import ph.edu.companionapp.realm.realmmodels.OwnerRealm
-import ph.edu.companionapp.adapters.OwnerAdapter
-import ph.edu.companionapp.adapters.PetAdapter
-import ph.edu.companionapp.databinding.ActivityOwnersBinding
+import ph.edu.companionapp.databinding.ActivityArchivedBinding
 import ph.edu.companionapp.models.Owner
 import ph.edu.companionapp.realm.RealmDatabase
 import ph.edu.companionapp.realm.realmmodels.PetRealm
 import ph.edu.companionapp.viewmodels.OwnersViewModel
 
 
-class OwnersActivity : AppCompatActivity(),
-    OwnerAdapter.OwnerAdapterInterface {
-    private lateinit var binding: ActivityOwnersBinding
-    private lateinit var adapter: OwnerAdapter
+class ArchivedActivity : AppCompatActivity(),
+    //PetAdapter.PetAdapterInterface,
+    ArchivedAdapter.ArchiveAdapterInterface {
+    private lateinit var binding : ActivityArchivedBinding
+    private lateinit var adapter: ArchivedAdapter
     private lateinit var ownerList: ArrayList<Owner>
     private lateinit var itemTouchHelper: ItemTouchHelper
     private var database = RealmDatabase()
 
-    private val swipeToDeleteCallback = object : ItemTouchHelper.SimpleCallback(
+    private val swipeToDeleteCallback  = object : ItemTouchHelper.SimpleCallback(
         0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
-    ) {
+    ){
         override fun onMove(
             recyclerView: RecyclerView,
             viewHolder: RecyclerView.ViewHolder,
@@ -59,11 +54,10 @@ class OwnersActivity : AppCompatActivity(),
                 // Notify adapter to refresh the view
                 adapter.notifyItemChanged(position)
             } else {
-                AlertDialog.Builder(this@OwnersActivity)
+                AlertDialog.Builder(this@ArchivedActivity)
                     .setTitle("Delete")
-                    .setMessage("Are you sure you want to archive this?")
-                    .setPositiveButton("Archive") { _, _ ->
-                        adapter.onItemDismiss(position)
+                    .setMessage("Are you sure you want to delete this?")
+                    .setPositiveButton("Delete") { _, _ -> adapter.onItemDismiss(position)
 
                     }
                     .setNegativeButton("Cancel") { dialog, _ ->
@@ -78,9 +72,6 @@ class OwnersActivity : AppCompatActivity(),
         }
     }
 
-
-
-
     override fun refreshData() {
         // Implement data refresh logic in OwnersActivity or wherever necessary
         getOwners() // or any other logic to refresh data
@@ -88,13 +79,11 @@ class OwnersActivity : AppCompatActivity(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityOwnersBinding.inflate(layoutInflater)
+        binding = ActivityArchivedBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
-
         ownerList = arrayListOf()
-        adapter = OwnerAdapter(ownerList, this, this, supportFragmentManager)
+        adapter = ArchivedAdapter(ownerList,this, this, supportFragmentManager)
         binding.rvOwner.adapter = adapter
 
         itemTouchHelper = ItemTouchHelper(swipeToDeleteCallback)
@@ -105,7 +94,6 @@ class OwnersActivity : AppCompatActivity(),
 
     }
 
-
     override fun onResume() {
         super.onResume()
         getOwners()
@@ -114,14 +102,9 @@ class OwnersActivity : AppCompatActivity(),
     override fun onPause() {
         getOwners()
         super.onPause()
-
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-    }
-
-    private fun mapPet(pet: PetRealm): Pet {
+    private fun mapPet(pet: PetRealm) : Pet {
         return Pet(
             id = pet.id.toHexString(),
             name = pet.name,
@@ -137,17 +120,17 @@ class OwnersActivity : AppCompatActivity(),
             id = owner.id.toHexString(),
             name = owner.name,
             petCount = owner.pets.size,
-            ownedPets = owner.pets.map { mapPet(it) }
+            ownedPets = owner.pets.map {mapPet(it)}
         )
-
     }
+
 
 
     fun getOwners() {
         val coroutineContext = Job() + Dispatchers.IO
         val scope = CoroutineScope(coroutineContext + CoroutineName("LoadAllOwners"))
         scope.launch(Dispatchers.IO) {
-            val owners = database.getAllOwners()
+            val owners = database.getArchivedOwners()
             val ownerList = arrayListOf<Owner>()
 
             ownerList.addAll(
@@ -156,7 +139,6 @@ class OwnersActivity : AppCompatActivity(),
                 }
             )
             withContext(Dispatchers.Main) {
-
                 adapter.updateList(ownerList)
                 adapter.notifyDataSetChanged()
             }
@@ -165,37 +147,27 @@ class OwnersActivity : AppCompatActivity(),
 
 
 
-    override fun archiveOwner(ownerId: String, position: Int) {
+    override fun deleteOwnerAndTransferPets(ownerId: String, position: Int) {
+        // Implement the logic to transfer pets to Lotus and delete the owner
         val coroutineContext = Job() + Dispatchers.IO
-        val scope = CoroutineScope(coroutineContext + CoroutineName("archiveOwner"))
+        val scope = CoroutineScope(coroutineContext + CoroutineName("deleteOwnerAndTransferPets"))
+
         scope.launch(Dispatchers.IO) {
             try {
-                val owner = ownerList[position]
-                if(owner.name == "Lotus"){
-                    withContext(Dispatchers.Main) {
-                        Snackbar.make(binding.root, "Cannot archive the default owner 'Lotus'", Snackbar.LENGTH_SHORT).show()
-                    }
-                }
-                else {
-                    database.archiveOwner(owner)
-                    withContext(Dispatchers.Main) {
-                        ownerList.removeAt(position)
-                        adapter.notifyItemRemoved(position)
-                        adapter.updateList(database.getAllOwners().map { mapOwner(it) } as ArrayList<Owner>)
-                        Snackbar.make(binding.root, "Owner Archived Successfully", Snackbar.LENGTH_LONG).show()
-                    }
+                database.deleteOwnerAndTransferPets(BsonObjectId(ownerId))
+                withContext(Dispatchers.Main) {
+                    // Notify the adapter after successful deletion
+                    adapter.notifyItemRemoved(position)
+                    adapter.updateList(database.getArchivedOwners().map { mapOwner(it) } as ArrayList<Owner>)
+                    Snackbar.make(binding.root, "Owner deleted and pets transferred to Lotus", Snackbar.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                // Handle deletion error
                 withContext(Dispatchers.Main) {
                     adapter.notifyItemChanged(position)
-                    Snackbar.make(binding.root, "Error archiving owner: ${e.message}", Snackbar.LENGTH_SHORT).show()
+                    Snackbar.make(binding.root, "Error deleting owner", Snackbar.LENGTH_SHORT).show()
                 }
             }
         }
-    }
-
-    override fun deleteOwnerAndTransferPets(ownerId: String, position: Int) {
-
     }
 }

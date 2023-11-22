@@ -86,7 +86,5 @@ class EditOwner: DialogFragment() {
                 }
             }
         }
-
     }
-
 }
