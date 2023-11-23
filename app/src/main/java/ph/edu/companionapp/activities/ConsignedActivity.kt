@@ -69,6 +69,8 @@ class ConsignedActivity : AppCompatActivity(),
         itemTouchHelper = ItemTouchHelper(swipeToDeleteCallback)
         itemTouchHelper.attachToRecyclerView(binding.rvPets)
 
+        getPets()
+
 
         binding.btnSearch.setOnClickListener{
             if(binding.edtSearch.text.toString().isEmpty()){
@@ -103,7 +105,6 @@ class ConsignedActivity : AppCompatActivity(),
 
     override fun onPause() {
         super.onPause()
-        getPets()
     }
 
     override fun refreshData() {
@@ -138,6 +139,7 @@ class ConsignedActivity : AppCompatActivity(),
             withContext(Dispatchers.Main) {
                 adapter.updatePetList(petList)
                 adapter.notifyDataSetChanged()
+                binding.empty.text = if (petList.isEmpty()) "No Consigned Companions Yet..." else ""
             }
         }
     }
@@ -154,6 +156,7 @@ class ConsignedActivity : AppCompatActivity(),
                     adapter.notifyItemRemoved(position)
                     adapter.updatePetList(database.getConsignedPets().map { mapPet(it) } as ArrayList<Pet>)
                     Snackbar.make(binding.root, "Pet deleted", Snackbar.LENGTH_SHORT).show()
+                    getPets()
                 }
             } catch (e: Exception) {
                 // Handle deletion error

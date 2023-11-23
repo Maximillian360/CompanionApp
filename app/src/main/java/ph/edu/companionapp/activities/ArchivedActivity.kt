@@ -86,6 +86,8 @@ class ArchivedActivity : AppCompatActivity(),
         adapter = ArchivedAdapter(ownerList,this, this, supportFragmentManager)
         binding.rvOwner.adapter = adapter
 
+        getOwners()
+
         itemTouchHelper = ItemTouchHelper(swipeToDeleteCallback)
         itemTouchHelper.attachToRecyclerView(binding.rvOwner)
 
@@ -100,7 +102,6 @@ class ArchivedActivity : AppCompatActivity(),
     }
 
     override fun onPause() {
-        getOwners()
         super.onPause()
     }
 
@@ -139,8 +140,10 @@ class ArchivedActivity : AppCompatActivity(),
                 }
             )
             withContext(Dispatchers.Main) {
+                binding.empty.text = if (ownerList.isEmpty()) "No Archived Tenno Yet..." else ""
                 adapter.updateList(ownerList)
                 adapter.notifyDataSetChanged()
+
             }
         }
     }
@@ -156,7 +159,6 @@ class ArchivedActivity : AppCompatActivity(),
             try {
                 database.deleteOwnerAndTransferPets(BsonObjectId(ownerId))
                 withContext(Dispatchers.Main) {
-                    // Notify the adapter after successful deletion
                     adapter.notifyItemRemoved(position)
                     adapter.updateList(database.getArchivedOwners().map { mapOwner(it) } as ArrayList<Owner>)
                     Snackbar.make(binding.root, "Owner deleted and pets transferred to Lotus", Snackbar.LENGTH_SHORT).show()

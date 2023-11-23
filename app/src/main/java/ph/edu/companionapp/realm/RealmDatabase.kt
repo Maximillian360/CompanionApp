@@ -86,6 +86,11 @@ class RealmDatabase {
         return realm.query<OwnerRealm>("isDeleted == true").find()
     }
 
+    fun getNonLotusOwner() : List<OwnerRealm> {
+        return realm.query<OwnerRealm>("name != $0 && isDeleted == false", "Lotus").find()
+    }
+
+
     // Search Query
     fun getPetsByName(name: String): List<PetRealm> {
         return realm.query<PetRealm>("name CONTAINS $0", name).find()
@@ -204,6 +209,10 @@ class RealmDatabase {
                 throw IllegalStateException("Error updating Pet", e)
             }
         }
+    }
+
+    suspend fun ownerNameTaken(name: String) : Boolean {
+        return realm.query<OwnerRealm>("name == $0", name).first().find() != null
     }
 
 

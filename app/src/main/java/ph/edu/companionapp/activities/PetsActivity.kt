@@ -84,6 +84,8 @@ class PetsActivity : AppCompatActivity(),
         itemTouchHelper.attachToRecyclerView(binding.rvPets)
 
 
+        getPets()
+
         binding.fab.setOnClickListener {
             val addPetDialog = AddPetDialog()
             addPetDialog.refreshDataCallback = this
@@ -113,7 +115,6 @@ class PetsActivity : AppCompatActivity(),
 
     override fun onPause() {
         super.onPause()
-        getPets()
     }
 
 
@@ -140,6 +141,7 @@ class PetsActivity : AppCompatActivity(),
                     adapter.notifyItemRemoved(position)
                     adapter.updatePetList(database.getOwnedPets().map { mapPet(it) } as ArrayList<Pet>)
                     Snackbar.make(binding.root, "Pet consigned", Snackbar.LENGTH_SHORT).show()
+                    getPets()
 
                 }
             } catch (e: Exception) {
@@ -183,6 +185,7 @@ class PetsActivity : AppCompatActivity(),
             withContext(Dispatchers.Main) {
                 adapter.updatePetList(petList)
                 adapter.notifyDataSetChanged()
+                binding.empty.text = if (petList.isEmpty()) "No Companions Yet..." else ""
             }
         }
     }

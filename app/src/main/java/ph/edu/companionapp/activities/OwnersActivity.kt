@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -73,7 +74,7 @@ class OwnersActivity : AppCompatActivity(),
                     }
                     .show()
                 // Handle swipe for other owners
-
+                getOwners()
             }
         }
     }
@@ -92,10 +93,11 @@ class OwnersActivity : AppCompatActivity(),
         setContentView(binding.root)
 
 
-
         ownerList = arrayListOf()
         adapter = OwnerAdapter(ownerList, this, this, supportFragmentManager)
         binding.rvOwner.adapter = adapter
+
+        getOwners()
 
         itemTouchHelper = ItemTouchHelper(swipeToDeleteCallback)
         itemTouchHelper.attachToRecyclerView(binding.rvOwner)
@@ -112,14 +114,10 @@ class OwnersActivity : AppCompatActivity(),
     }
 
     override fun onPause() {
-        getOwners()
         super.onPause()
 
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-    }
 
     private fun mapPet(pet: PetRealm): Pet {
         return Pet(
@@ -146,8 +144,9 @@ class OwnersActivity : AppCompatActivity(),
     fun getOwners() {
         val coroutineContext = Job() + Dispatchers.IO
         val scope = CoroutineScope(coroutineContext + CoroutineName("LoadAllOwners"))
+
         scope.launch(Dispatchers.IO) {
-            val owners = database.getAllOwners()
+            val owners = database.getNonLotusOwner()
             val ownerList = arrayListOf<Owner>()
 
             ownerList.addAll(
@@ -156,9 +155,10 @@ class OwnersActivity : AppCompatActivity(),
                 }
             )
             withContext(Dispatchers.Main) {
-
+                binding.emptyOwners.text = if (owners.isEmpty()) "No Tenno Owners Yet..." else ""
                 adapter.updateList(ownerList)
                 adapter.notifyDataSetChanged()
+
             }
         }
     }
@@ -181,7 +181,7 @@ class OwnersActivity : AppCompatActivity(),
                     withContext(Dispatchers.Main) {
                         ownerList.removeAt(position)
                         adapter.notifyItemRemoved(position)
-                        adapter.updateList(database.getAllOwners().map { mapOwner(it) } as ArrayList<Owner>)
+                        adapter.updateList(database.getNonLotusOwner().map { mapOwner(it) } as ArrayList<Owner>)
                         Snackbar.make(binding.root, "Owner Archived Successfully", Snackbar.LENGTH_LONG).show()
                     }
                 }
